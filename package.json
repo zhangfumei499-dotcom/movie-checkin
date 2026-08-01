@@ -1,0 +1,12 @@
+{
+  "name": "movie-checkin",
+  "version": "1.0.0",
+  "description": "小器皿观团签到系统",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
