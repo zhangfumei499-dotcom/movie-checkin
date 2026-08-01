@@ -100,9 +100,6 @@
     .btn-primary { background: linear-gradient(135deg, var(--primary), #c70812); color: #fff; box-shadow: 0 8px 24px rgba(229,9,20,0.3); }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(229,9,20,0.4); }
     .btn-primary:active { transform: translateY(0); }
-    .btn-wechat { background: linear-gradient(135deg, #07c160, #06ad56); color: #fff; box-shadow: 0 8px 24px rgba(7,193,96,0.3); display: flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-wechat:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(7,193,96,0.4); }
-    .btn-success { background: linear-gradient(135deg, #00c853, #009624); color: #fff; box-shadow: 0 8px 24px rgba(0,200,83,0.3); }
     .btn-outline { background: transparent; border: 2px solid var(--card-border); color: var(--text-secondary); margin-top: 10px; }
     .btn-outline:hover { border-color: var(--text); color: #fff; }
 
@@ -149,41 +146,6 @@
     .error-msg.show { display: block; }
     @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 
-    /* 微信支付模拟 */
-    .wechat-pay-overlay {
-      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.85); z-index: 100;
-      align-items: center; justify-content: center;
-      animation: fadeIn 0.3s ease;
-    }
-    .wechat-pay-overlay.show { display: flex; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    .wechat-pay-card {
-      background: #fff; border-radius: 20px; width: 90%; max-width: 380px;
-      overflow: hidden; animation: scaleIn 0.3s ease;
-    }
-    @keyframes scaleIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
-
-    .wechat-header { background: #07c160; padding: 20px; text-align: center; color: #fff; }
-    .wechat-header .wechat-icon { font-size: 32px; margin-bottom: 4px; }
-    .wechat-header .wechat-title { font-size: 18px; font-weight: 600; }
-
-    .wechat-body { padding: 24px; color: #333; }
-    .wechat-amount-display { text-align: center; padding: 20px 0; border-bottom: 1px solid #eee; margin-bottom: 16px; }
-    .wechat-amount-label { font-size: 14px; color: #999; margin-bottom: 6px; }
-    .wechat-amount { font-size: 40px; font-weight: 700; color: #333; }
-    .wechat-amount .symbol { font-size: 22px; vertical-align: top; margin-right: 2px; }
-    .wechat-merchant { display: flex; align-items: center; gap: 10px; padding: 12px 0; font-size: 15px; }
-    .wechat-merchant-icon { width: 40px; height: 40px; background: #07c160; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; }
-    .wechat-merchant-name { font-weight: 600; }
-    .wechat-merchant-desc { font-size: 12px; color: #999; }
-    .wechat-pay-btn { display: block; width: 100%; padding: 15px; background: #07c160; color: #fff; border: none; border-radius: 12px; font-size: 17px; font-weight: 600; cursor: pointer; margin-top: 18px; transition: all 0.2s ease; font-family: inherit; }
-    .wechat-pay-btn:hover { background: #06ad56; }
-    .wechat-pay-btn:active { transform: scale(0.98); }
-    .wechat-close { display: block; width: 100%; padding: 12px; background: transparent; border: none; color: #999; font-size: 14px; cursor: pointer; margin-top: 6px; font-family: inherit; }
-    .wechat-close:hover { color: #666; }
-
     .success-toast {
       position: fixed; top: 30px; left: 50%;
       transform: translateX(-50%) translateY(-120px);
@@ -199,23 +161,6 @@
       background: rgba(0,200,83,0.15); border: 1px solid rgba(0,200,83,0.3);
       color: var(--success); padding: 5px 12px; border-radius: 20px;
       font-size: 13px; font-weight: 600;
-    }
-
-    .qr-pay-section {
-      text-align: center; padding: 8px 0 16px;
-    }
-    .qr-pay-img {
-      width: 220px; height: 220px; max-width: 100%;
-      border-radius: 16px; border: 1px solid var(--card-border);
-      background: #fff; padding: 10px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .qr-pay-hint {
-      font-size: 12px; color: var(--text-secondary); margin-top: 10px;
-      line-height: 1.6;
-    }
-    .qr-pay-amount {
-      font-size: 22px; font-weight: 700; color: var(--gold); margin-bottom: 12px;
     }
 
     .loading-spinner {
@@ -235,7 +180,7 @@
   </style>
 </head>
 <body>
-  <div class="success-toast" id="successToast">签到成功！请完成支付</div>
+  <div class="success-toast" id="successToast">签到成功！</div>
 
   <div class="app-container">
     <div class="card">
@@ -249,8 +194,6 @@
         <div class="step-dot active" id="stepDot1"></div>
         <div class="step-line" id="stepLine1"></div>
         <div class="step-dot" id="stepDot2"></div>
-        <div class="step-line" id="stepLine2"></div>
-        <div class="step-dot" id="stepDot3"></div>
       </div>
 
       <div class="error-msg" id="errorMsg"></div>
@@ -301,41 +244,14 @@
         <button class="btn btn-outline" onclick="goBack()">返回重新查询</button>
       </div>
 
-      <!-- 步骤3: 签到完成 + 支付 -->
+      <!-- 签到完成 -->
       <div class="result-section" id="step3">
-        <div class="result-card" style="text-align: center;">
-          <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
-          <div style="font-size: 18px; font-weight: 600; color: var(--success); margin-bottom: 8px;">签到成功</div>
-          <div id="step3Msg" style="color: var(--text-secondary); font-size: 14px;">请使用微信扫描下方二维码支付</div>
-        </div>
-        <div class="qr-pay-section" id="qrPaySection">
-          <div class="qr-pay-amount" id="qrPayAmount">--</div>
-          <img src="wechat-pay-qr.jpg" alt="微信支付收款码" class="qr-pay-img" id="qrPayImg"/>
-          <div class="qr-pay-hint">
-            请使用微信扫一扫<br/>
-            支付时请备注姓名：<span id="qrPayName" style="color:#fff;font-weight:600;">--</span>
-          </div>
-        </div>
-        <div id="step3PayAction">
-          <button class="btn btn-wechat" onclick="markPaid()">
-            <span>💚</span> 我已完成支付
-          </button>
-        </div>
-        <button class="btn btn-outline" onclick="resetAll()">重新签到</button>
-      </div>
-
-      <!-- 已完成状态 -->
-      <div class="result-section" id="step4">
         <div class="result-card" style="text-align: center; border-color: rgba(0,200,83,0.3);">
           <div style="font-size: 56px; margin-bottom: 16px;">🎉</div>
-          <div style="font-size: 20px; font-weight: 700; color: var(--success); margin-bottom: 8px;">全部完成</div>
-          <div style="color: var(--text-secondary); font-size: 14px;" id="step4Detail"></div>
+          <div style="font-size: 20px; font-weight: 700; color: var(--success); margin-bottom: 8px;">签到成功</div>
+          <div style="color: var(--text-secondary); font-size: 14px;" id="step3Detail"></div>
         </div>
-        <div class="result-card" style="text-align: center; background: rgba(7,193,96,0.08); border-color: rgba(7,193,96,0.2);">
-          <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 6px;">如支付成功，后台会在 30 秒内更新状态</div>
-          <div style="font-size: 12px; color: #07c160;">支付遇到问题请联系现场工作人员</div>
-        </div>
-        <button class="btn btn-outline" onclick="resetAll()">重新签到</button>
+        <button class="btn btn-outline" onclick="resetAll()">签到下一位</button>
       </div>
     </div>
   </div>
@@ -490,7 +406,6 @@
     var step1 = document.getElementById('step1');
     var step2 = document.getElementById('step2');
     var step3 = document.getElementById('step3');
-    var step4 = document.getElementById('step4');
     var errorMsg = document.getElementById('errorMsg');
     var movieInfo = document.getElementById('movieInfo');
     var resultName = document.getElementById('resultName');
@@ -500,18 +415,10 @@
     var resultStatus = document.getElementById('resultStatus');
     var checkinBtn = document.getElementById('checkinBtn');
     var successToast = document.getElementById('successToast');
-    var step3PayAction = document.getElementById('step3PayAction');
-    var step3Msg = document.getElementById('step3Msg');
-    var qrPayAmount = document.getElementById('qrPayAmount');
-    var qrPayName = document.getElementById('qrPayName');
-    var qrPaySection = document.getElementById('qrPaySection');
-    var qrPayImg = document.getElementById('qrPayImg');
 
     var stepDot1 = document.getElementById('stepDot1');
     var stepDot2 = document.getElementById('stepDot2');
-    var stepDot3 = document.getElementById('stepDot3');
     var stepLine1 = document.getElementById('stepLine1');
-    var stepLine2 = document.getElementById('stepLine2');
 
     // ============ 搜索 ============
     nameInput.addEventListener('keydown', function(e) {
@@ -546,8 +453,6 @@
         currentMatchName = input;
         var checkInfo = checkedInSet[record.no];
         var isChecked = !!checkInfo;
-        var isPaid = checkInfo && checkInfo.paid;
-        var isFree = record.amount === 0;
 
         // 显示电影信息
         movieInfo.innerHTML = '电影：《蜘蛛侠-崭新之日》<br>活动时间：2026年8月';
@@ -556,7 +461,7 @@
         resultName.textContent = record.name;
         resultGroup.textContent = record.group || '未分组';
         resultPeople.textContent = record.people + ' 人';
-        if (isFree) {
+        if (record.amount === 0) {
           resultAmount.innerHTML = '免费（¥0.00）';
           resultAmount.classList.add('free');
         } else {
@@ -565,46 +470,26 @@
         }
 
         if (isChecked) {
-          if (isPaid) {
-            resultStatus.innerHTML = '<span class="checked-in-badge">✅ 已签到 · 已支付</span>';
-          } else if (isFree) {
-            resultStatus.innerHTML = '<span class="checked-in-badge">✅ 已签到 · 免费</span>';
-          } else {
-            resultStatus.innerHTML = '<span class="checked-in-badge">✅ 已签到 · 待支付</span>';
-          }
+          resultStatus.innerHTML = '<span class="checked-in-badge">✅ 已签到</span>';
           checkinBtn.textContent = '已签到';
           checkinBtn.disabled = true;
-        } else {
-          resultStatus.innerHTML = '<span style="color: var(--text-secondary);">待签到</span>';
-          checkinBtn.textContent = '确认签到';
-          checkinBtn.disabled = false;
-        }
-
-        // 切换步骤
-        step1.classList.add('hidden');
-        step4.classList.remove('show');
-
-        if (isChecked && (isPaid || isFree)) {
-          // 已签到且已支付/免费，直接显示完成
+          // 已签到直接显示完成页
+          step1.classList.add('hidden');
           step2.classList.remove('show');
           step3.classList.remove('show');
           finishAll();
-        } else if (isChecked && !isPaid && !isFree) {
-          // 已签到但未支付，跳到支付页
-          step2.classList.remove('show');
-          qrPayAmount.textContent = '¥' + record.amount.toFixed(2);
-          qrPayName.textContent = record.name;
-          qrPaySection.style.display = 'block';
-          step3.classList.add('show');
-          step3PayAction.innerHTML = '<button class="btn btn-wechat" onclick="markPaid()"><span>💚</span> 我已完成支付</button>';
-          step3Msg.textContent = '请使用微信扫描下方二维码支付';
-          updateSteps(3);
-        } else {
-          // 未签到，显示查询结果
-          step2.classList.add('show');
-          step3.classList.remove('show');
-          updateSteps(2);
+          return;
         }
+
+        resultStatus.innerHTML = '<span style="color: var(--text-secondary);">待签到</span>';
+        checkinBtn.textContent = '确认签到';
+        checkinBtn.disabled = false;
+
+        // 切换步骤
+        step1.classList.add('hidden');
+        step3.classList.remove('show');
+        step2.classList.add('show');
+        updateSteps(2);
       }, 400);
     }
 
@@ -639,92 +524,33 @@
       checkinBtn.disabled = true;
       checkinBtn.innerHTML = '<span class="loading-spinner"></span> 签到中...';
 
-      // 通过 API 保存签到状态（服务器集中存储）
       saveCheckedIn(currentRecord.no, function(success) {
         resultStatus.innerHTML = '<span class="checked-in-badge">✅ 已签到</span>';
         checkinBtn.textContent = '已签到';
         checkinBtn.disabled = false;
 
-        var isFree = currentRecord.amount === 0;
-
-        if (isFree) {
-          qrPayAmount.textContent = '免费（¥0.00）';
-          qrPayName.textContent = currentRecord.name;
-          qrPaySection.style.display = 'none';
-          step3Msg.textContent = '您无需支付，签到已完成';
-          step3PayAction.innerHTML = '<button class="btn btn-success" onclick="finishAll()">完成</button>';
-        } else {
-          qrPayAmount.textContent = '¥' + currentRecord.amount.toFixed(2);
-          qrPayName.textContent = currentRecord.name;
-          qrPaySection.style.display = 'block';
-          step3Msg.textContent = '请使用微信扫描下方二维码支付';
-          step3PayAction.innerHTML = '<button class="btn btn-wechat" onclick="markPaid()"><span>💚</span> 我已完成支付</button>';
-        }
-
         showToast();
 
         setTimeout(function() {
           step2.classList.remove('show');
-          step3.classList.add('show');
-          updateSteps(3);
+          finishAll();
         }, 500);
       });
     }
 
-    // ============ 微信支付 ============
-    function markPaid() {
-      if (!currentRecord || currentRecord.amount === 0) {
-        finishAll();
-        return;
-      }
-
-      var btn = step3PayAction.querySelector('button');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="loading-spinner"></span> 确认中...';
-
-      fetch(API_BASE + '/api/pay/' + encodeURIComponent(currentRecord.no), {
-        method: 'POST'
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(res) {
-        if (res.success) {
-          checkedInSet[currentRecord.no] = res.data;
-          finishAll();
-        } else {
-          btn.disabled = false;
-          btn.innerHTML = '<span>💚</span> 我已完成支付';
-          showError(res.error || '标记支付失败，请重试');
-        }
-      })
-      .catch(function() {
-        // 网络错误时本地标记
-        if (!checkedInSet[currentRecord.no]) checkedInSet[currentRecord.no] = {};
-        checkedInSet[currentRecord.no].paid = true;
-        try { localStorage.setItem('spiderman_checkin_status', JSON.stringify(checkedInSet)); } catch(e) {}
-        finishAll();
-      });
-    }
-
-    // ============ 全部完成 ============
+    // ============ 签到完成 ============
     function finishAll() {
-      var isFree = currentRecord.amount === 0;
-      document.getElementById('step4Detail').innerHTML =
-        (isFree ? '签到完成，无需支付' : '支付成功！') + '<br>' +
-        currentRecord.name + ' · ' + currentRecord.people + '人' +
-        (isFree ? '' : ' · ¥' + currentRecord.amount.toFixed(2));
+      document.getElementById('step3Detail').innerHTML =
+        currentRecord.name + '<br>' + currentRecord.people + '人' +
+        (currentRecord.amount > 0 ? ' · ¥' + currentRecord.amount.toFixed(2) : '');
 
-      step3.classList.remove('show');
-      step4.classList.add('show');
-      stepDot3.classList.add('done');
-      stepLine2.classList.add('done');
+      step3.classList.add('show');
+      stepDot2.classList.add('done');
+      stepLine1.classList.add('done');
 
-      successToast.textContent = isFree ? '签到成功！' : '支付成功！';
-      successToast.style.background = '#07c160';
       successToast.classList.add('show');
       setTimeout(function() {
         successToast.classList.remove('show');
-        successToast.textContent = '签到成功！请完成支付';
-        successToast.style.background = 'var(--success)';
       }, 3000);
     }
 
@@ -743,10 +569,6 @@
       step1.classList.remove('hidden');
       step2.classList.remove('show');
       step3.classList.remove('show');
-      step4.classList.remove('show');
-      qrPaySection.style.display = 'block';
-      step3PayAction.innerHTML = '<button class="btn btn-wechat" onclick="markPaid()"><span>💚</span> 我已完成支付</button>';
-      step3Msg.textContent = '请使用微信扫描下方二维码支付';
       resultAmount.classList.remove('free');
       errorMsg.classList.remove('show');
       updateSteps(1);
@@ -756,9 +578,7 @@
     function updateSteps(step) {
       stepDot1.className = 'step-dot' + (step >= 1 ? ' active' : '') + (step > 1 ? ' done' : '');
       stepDot2.className = 'step-dot' + (step >= 2 ? ' active' : '') + (step > 2 ? ' done' : '');
-      stepDot3.className = 'step-dot' + (step >= 3 ? ' active' : '');
       stepLine1.className = 'step-line' + (step > 1 ? ' done' : '');
-      stepLine2.className = 'step-line' + (step > 2 ? ' done' : '');
     }
 
     function showError(msg) {
