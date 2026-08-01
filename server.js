@@ -15,6 +15,19 @@ if (!fs.existsSync(DATA_FILE)) {
   fs.writeFileSync(DATA_FILE, '{}', 'utf-8');
 }
 
+function getNow() {
+  const now = new Date();
+  const h = ('0' + now.getHours()).slice(-2);
+  const m = ('0' + now.getMinutes()).slice(-2);
+  const s = ('0' + now.getSeconds()).slice(-2);
+  const month = ('0' + (now.getMonth() + 1)).slice(-2);
+  const day = ('0' + now.getDate()).slice(-2);
+  return {
+    time: h + ':' + m + ':' + s,
+    date: now.getFullYear() + '-' + month + '-' + day
+  };
+}
+
 app.use(express.json());
 
 // ============ API ============
@@ -36,18 +49,53 @@ app.post('/api/checkin', (req, res) => {
 
   try {
     const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-    const now = new Date();
-    const h = ('0' + now.getHours()).slice(-2);
-    const m = ('0' + now.getMinutes()).slice(-2);
-    const s = ('0' + now.getSeconds()).slice(-2);
-    const month = ('0' + (now.getMonth() + 1)).slice(-2);
-    const day = ('0' + now.getDate()).slice(-2);
+    const now = getNow();
+    const existing = data[id] || {};
     data[id] = {
-      time: h + ':' + m + ':' + s,
-      date: now.getFullYear() + '-' + month + '-' + day
+      time: now.time,
+      date: now.date,
+      paid: existing.paid || false,
+      paidTime: existing.paidTime || '',
+      paidDate: existing.paidDate || ''
     };
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
     res.json({ success: true, data: data[id] });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// 标记已支付
+app.post('/api/pay/:id', (req, res) => {
+  const { id } = req.params;
+  try {
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+    if (!data[id]) {
+      return res.status(404).json({ success: false, error: '未签到，无法标记支付' });
+    }
+    const now = getNow();
+    data[id].paid = true;
+    data[id].paidTime = now.time;
+    data[id].paidDate = now.date;
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    res.json({ success: true, data: data[id] });
+  } catch (e) {
+    res.status(500).json({ success: false, error: e.message });
+  }
+});
+
+// 取消支付标记（管理员）
+app.delete('/api/pay/:id', (req, res) => {
+  const { id } = req.params;
+  try {
+    const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+    if (data[id]) {
+      data[id].paid = false;
+      data[id].paidTime = '';
+      data[id].paidDate = '';
+      fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    }
+    res.json({ success: true });
   } catch (e) {
     res.status(500).json({ success: false, error: e.message });
   }

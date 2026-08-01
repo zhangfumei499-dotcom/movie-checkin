@@ -91,8 +91,8 @@
     .stat-card .stat-label { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
     .stat-card.total .stat-num { color: #333; }
     .stat-card.checked .stat-num { color: var(--success); }
-    .stat-card.pending .stat-num { color: var(--warning); }
-    .stat-card.rate .stat-num { color: var(--primary); }
+    .stat-card.paid .stat-num { color: var(--success); }
+    .stat-card.unpaid .stat-num { color: var(--warning); }
     .stat-card .stat-bar {
       height: 6px; background: #eee; border-radius: 3px; margin-top: 12px; overflow: hidden;
     }
@@ -227,13 +227,13 @@
         <div class="stat-label">已签到</div>
         <div class="stat-bar"><div class="stat-bar-fill" id="statBar" style="width:0%"></div></div>
       </div>
-      <div class="stat-card pending">
-        <div class="stat-num" id="statPending">0</div>
-        <div class="stat-label">待签到</div>
+      <div class="stat-card paid">
+        <div class="stat-num" id="statPaid">0</div>
+        <div class="stat-label">已支付</div>
       </div>
-      <div class="stat-card rate">
-        <div class="stat-num" id="statRate">0%</div>
-        <div class="stat-label">签到率</div>
+      <div class="stat-card unpaid">
+        <div class="stat-num" id="statUnpaid">0</div>
+        <div class="stat-label">待支付</div>
       </div>
     </div>
 
@@ -418,14 +418,28 @@
     function updateStats() {
       var checkedIn = getCheckedInSync();
       var total = signupData.length;
-      var checked = Object.keys(checkedIn).length;
-      var pending = total - checked;
+      var checked = 0, paid = 0, unpaid = 0;
+
+      signupData.forEach(function(d) {
+        var info = checkedIn[d.no];
+        if (info) {
+          checked++;
+          if (d.amount === 0 || info.paid) {
+            paid++;
+          } else {
+            unpaid++;
+          }
+        } else {
+          unpaid++;
+        }
+      });
+
       var rate = total > 0 ? Math.round((checked / total) * 100) : 0;
 
       document.getElementById('statTotal').textContent = total;
       document.getElementById('statChecked').textContent = checked;
-      document.getElementById('statPending').textContent = pending;
-      document.getElementById('statRate').textContent = rate + '%';
+      document.getElementById('statPaid').textContent = paid;
+      document.getElementById('statUnpaid').textContent = unpaid;
       document.getElementById('statBar').style.width = rate + '%';
     }
 
@@ -442,12 +456,15 @@
 
         var info = checkedIn[d.no];
         var isChecked = !!info;
+        var isPaid = isChecked && info.paid;
         list.push({
           no: d.no, name: d.name, group: dGroup,
           people: d.people, amount: d.amount,
-          isChecked: isChecked,
+          isChecked: isChecked, isPaid: isPaid,
           time: isChecked ? (info.time || '--') : '',
-          date: isChecked ? (info.date || '--') : ''
+          date: isChecked ? (info.date || '--') : '',
+          paidTime: isPaid ? (info.paidTime || '--') : '',
+          paidDate: isPaid ? (info.paidDate || '--') : ''
         });
       });
 
@@ -475,23 +492,42 @@
       var html = '<table><thead><tr>' +
         '<th>编号</th><th>姓名</th><th>小组</th>' +
         '<th style="text-align:center">人数</th><th style="text-align:center">金额</th>' +
-        '<th style="text-align:center">签到状态</th><th>签到时间</th>' +
+        '<th style="text-align:center">签到状态</th><th style="text-align:center">支付状态</th><th>时间</th>' +
         '<th style="text-align:center">操作</th>' +
         '</tr></thead><tbody>';
 
       data.forEach(function(d) {
-        var statusHtml, statusClass;
+        var statusHtml, statusClass, payHtml, payClass, actionHtml = '-';
         if (d.isChecked) {
           if (d.amount === 0) {
-            statusHtml = '已签到（免费）';
-            statusClass = 'badge-free';
+            statusHtml = '已签到';
+            statusClass = 'badge-done';
+            payHtml = '免费';
+            payClass = 'badge-free';
+          } else if (d.isPaid) {
+            statusHtml = '已签到';
+            statusClass = 'badge-done';
+            payHtml = '已支付';
+            payClass = 'badge-done';
           } else {
             statusHtml = '已签到';
             statusClass = 'badge-done';
+            payHtml = '待支付';
+            payClass = 'badge-pending';
+          }
+          actionHtml = '<button class="action-btn undo" onclick="undoCheckin(\'' + d.no + '\')">撤销签到</button>';
+          if (d.amount > 0) {
+            if (d.isPaid) {
+              actionHtml += ' <button class="action-btn undo" onclick="togglePay(\'' + d.no + '\', false)" style="margin-top:4px;color:#e65100;border-color:#ffe0b2">取消收款</button>';
+            } else {
+              actionHtml += ' <button class="action-btn" onclick="togglePay(\'' + d.no + '\', true)" style="margin-top:4px;color:var(--success);border-color:#c8e6c9">确认收款</button>';
+            }
           }
         } else {
           statusHtml = '待签到';
           statusClass = 'badge-pending';
+          payHtml = '-';
+          payClass = '';
         }
 
         html += '<tr>' +
@@ -501,10 +537,9 @@
           '<td style="text-align:center">' + d.people + '</td>' +
           '<td style="text-align:center' + (d.amount === 0 ? ';color:#999' : '') + '">¥' + d.amount + '</td>' +
           '<td class="status-badge"><span class="badge ' + statusClass + '">' + statusHtml + '</span></td>' +
-          '<td>' + (d.isChecked ? (d.date + ' ' + d.time) : '-') + '</td>' +
-          '<td style="text-align:center">' +
-            (d.isChecked ? '<button class="action-btn undo" onclick="undoCheckin(\'' + d.no + '\')">撤销</button>' : '-') +
-          '</td>' +
+          '<td class="status-badge"><span class="badge ' + payClass + '">' + payHtml + '</span></td>' +
+          '<td>' + (d.isChecked ? (d.date + ' ' + d.time + (d.isPaid ? '<br/><span style="color:#2e7d32;font-size:11px">付 ' + d.paidTime + '</span>' : '')) : '-') + '</td>' +
+          '<td style="text-align:center">' + actionHtml + '</td>' +
           '</tr>';
       });
 
@@ -546,15 +581,24 @@
     // ============ 导出 ============
     function exportCSV() {
       var checkedIn = getCheckedInSync();
-      var rows = [['编号','姓名','小组','人数','金额','签到状态','签到日期','签到时间']];
+      var rows = [['编号','姓名','小组','人数','金额','签到状态','支付状态','签到日期','签到时间','支付日期','支付时间']];
       signupData.forEach(function(d) {
         var info = checkedIn[d.no];
+        var payStatus = '未签到';
+        if (info) {
+          if (d.amount === 0) payStatus = '免费';
+          else if (info.paid) payStatus = '已支付';
+          else payStatus = '待支付';
+        }
         rows.push([
           d.no, d.name, d.group || '未分组',
           d.people, d.amount,
           info ? '已签到' : '待签到',
+          payStatus,
           info ? (info.date || '') : '',
-          info ? (info.time || '') : ''
+          info ? (info.time || '') : '',
+          info && info.paid ? (info.paidDate || '') : '',
+          info && info.paid ? (info.paidTime || '') : ''
         ]);
       });
       var csv = rows.map(function(r) {
@@ -584,6 +628,38 @@
           checkedInCache = {};
           renderAll();
           showToast('签到记录已清空（本地）');
+        });
+    }
+
+    // ============ 确认/取消收款 ============
+    function togglePay(no, markAsPaid) {
+      var record = signupData.find(function(d) { return d.no === no; });
+      var name = record ? record.name : no;
+      var url = API_BASE + '/api/pay/' + encodeURIComponent(no);
+      var method = markAsPaid ? 'POST' : 'DELETE';
+
+      fetch(url, { method: method })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res.success) {
+            if (markAsPaid) {
+              checkedInCache[no] = checkedInCache[no] || {};
+              checkedInCache[no].paid = true;
+              checkedInCache[no].paidTime = res.data ? res.data.paidTime : '--';
+              checkedInCache[no].paidDate = res.data ? res.data.paidDate : '--';
+            } else {
+              if (checkedInCache[no]) {
+                checkedInCache[no].paid = false;
+                checkedInCache[no].paidTime = '';
+                checkedInCache[no].paidDate = '';
+              }
+            }
+            renderAll();
+            showToast(markAsPaid ? '已确认「' + name + '」收款' : '已取消「' + name + '」收款');
+          }
+        })
+        .catch(function() {
+          showToast('网络错误，请刷新后重试');
         });
     }
 
