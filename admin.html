@@ -1,268 +1,153 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>签到管理后台</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>后台管理 · 蜘蛛侠签到</title>
   <style>
     :root {
-      --bg: #f5f5f5;
-      --card-bg: #fff;
-      --card-border: #e0e0e0;
-      --primary: #e50914;
-      --gold: #f5c518;
-      --text: #333;
-      --text-secondary: #888;
-      --success: #00c853;
-      --warning: #ff9800;
+      --bg: #0f0f1a; --card-bg: #1a1a2e; --card-border: #2a2a4a;
+      --text: #eee; --text-secondary: #88a; --primary: #e50914;
+      --gold: #f5c518; --success: #00c853; --warning: #ff9100;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; min-height: 100vh; }
 
-    /* ====== 登录遮罩 ====== */
-    .login-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6); z-index: 1000;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .login-overlay.hidden { display: none; }
-    .login-card {
-      background: #fff; border-radius: 16px; padding: 36px 28px;
-      width: 90%; max-width: 360px; text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-    }
-    .login-card h2 { font-size: 22px; margin-bottom: 6px; }
-    .login-card p { color: var(--text-secondary); font-size: 14px; margin-bottom: 20px; }
-    .login-input {
-      width: 100%; padding: 14px; border: 2px solid #e0e0e0;
-      border-radius: 12px; font-size: 16px; text-align: center;
-      outline: none; transition: border 0.2s; font-family: inherit;
-    }
+    .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .login-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 32px 24px; width: 90%; max-width: 360px; text-align: center; }
+    .login-card h2 { font-size: 20px; margin-bottom: 8px; }
+    .login-card p { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+    .login-input { width: 100%; padding: 12px; background: #0a0a14; border: 2px solid var(--card-border); border-radius: 10px; color: var(--text); font-size: 16px; text-align: center; outline: none; font-family: inherit; }
     .login-input:focus { border-color: var(--primary); }
-    .login-btn {
-      width: 100%; padding: 14px; margin-top: 16px; background: var(--primary);
-      color: #fff; border: none; border-radius: 12px; font-size: 16px;
-      font-weight: 600; cursor: pointer; font-family: inherit;
-    }
-    .login-btn:hover { background: #c70812; }
+    .login-btn { width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 14px; font-family: inherit; }
+    .login-btn:hover { opacity: 0.9; }
     .login-error { color: var(--primary); font-size: 13px; margin-top: 10px; display: none; }
     .login-error.show { display: block; }
 
-    /* ====== 主布局 ====== */
-    .admin-container {
-      max-width: 960px; margin: 0 auto; padding: 24px 16px;
-    }
+    .main-content { display: none; max-width: 1200px; margin: 0 auto; padding: 16px; }
+    .main-content.show { display: block; }
 
-    /* 顶部栏 */
-    .top-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      flex-wrap: wrap; gap: 12px; margin-bottom: 24px;
-    }
-    .top-bar h1 { font-size: 22px; display: flex; align-items: center; gap: 8px; }
-    .top-bar h1 .icon { font-size: 26px; }
-    .top-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .top-actions button {
-      padding: 8px 16px; border: 1px solid #ddd; border-radius: 8px;
-      background: #fff; font-size: 13px; cursor: pointer; font-family: inherit;
-      transition: all 0.2s;
-    }
-    .top-actions button:hover { background: #f0f0f0; }
-    .top-actions button.danger { color: var(--primary); border-color: #fcc; }
-    .top-actions button.danger:hover { background: #fff0f0; }
-    .top-actions button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
-    .top-actions button.primary:hover { background: #c70812; }
-    .auto-refresh { font-size: 13px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; }
+    .top-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 0 20px; flex-wrap: wrap; gap: 10px; }
+    .top-bar h1 { font-size: 20px; color: var(--gold); }
+    .top-bar .badge { font-size: 11px; background: var(--card-bg); border: 1px solid var(--card-border); padding: 4px 10px; border-radius: 12px; color: var(--text-secondary); }
+    .top-bar .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+    .top-bar .btn-sm { padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: opacity 0.2s; }
+    .btn-sm-export { background: #1a3a5c; color: #6db3f2; }
+    .btn-sm-clear { background: #3a1a1a; color: #f26d6d; }
+    .btn-sm:hover { opacity: 0.8; }
 
-    /* 统计卡片 */
-    .stats-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px; margin-bottom: 24px;
-    }
-    .stat-card {
-      background: #fff; border-radius: 14px; padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-    .stat-card .stat-num { font-size: 36px; font-weight: 700; }
-    .stat-card .stat-label { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
-    .stat-card.total .stat-num { color: #333; }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 18px; }
+    @media (max-width: 640px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    .stat-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; text-align: center; }
+    .stat-num { font-size: 28px; font-weight: 700; }
+    .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+    .stat-bar { margin-top: 8px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
+    .stat-bar-fill { height: 100%; background: var(--success); border-radius: 2px; transition: width 0.5s ease; }
+    .stat-card.total .stat-num { color: #ddd; }
     .stat-card.checked .stat-num { color: var(--success); }
-    .stat-card.paid .stat-num { color: var(--success); }
+    .stat-card.paid .stat-num { color: var(--primary); }
     .stat-card.unpaid .stat-num { color: var(--warning); }
-    .stat-card .stat-bar {
-      height: 6px; background: #eee; border-radius: 3px; margin-top: 12px; overflow: hidden;
-    }
-    .stat-card .stat-bar-fill {
-      height: 100%; background: var(--success); border-radius: 3px; transition: width 0.5s ease;
-    }
 
-    /* 筛选栏 */
-    .filter-bar {
-      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;
+    .filter-bar { display: flex; align-items: center; gap: 8px; padding: 12px 0; flex-wrap: wrap; font-size: 14px; }
+    .filter-bar select, .search-input {
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px;
+      color: var(--text); padding: 8px 12px; font-size: 14px; outline: none; font-family: inherit;
     }
-    .filter-bar label { font-size: 14px; color: var(--text-secondary); white-space: nowrap; }
-    .filter-bar select {
-      padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;
-      font-size: 14px; background: #fff; font-family: inherit; cursor: pointer;
-    }
-    .filter-bar .search-input {
-      padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;
-      font-size: 14px; width: 180px; font-family: inherit; outline: none;
-    }
-    .filter-bar .search-input:focus { border-color: var(--primary); }
+    .search-input { min-width: 160px; }
 
-    /* 标签页 */
-    .tabs { display: flex; gap: 0; margin-bottom: 0; }
-    .tab {
-      padding: 10px 24px; border: 1px solid #ddd; border-bottom: none;
-      background: #f9f9f9; font-size: 14px; cursor: pointer; font-family: inherit;
-      border-radius: 10px 10px 0 0; transition: all 0.2s;
-    }
-    .tab:first-child { border-radius: 10px 0 0 0; }
-    .tab.active { background: #fff; color: var(--primary); font-weight: 600; }
+    .tabs { display: flex; gap: 4px; margin: 10px 0; }
+    .tab { padding: 8px 18px; background: transparent; border: 1px solid var(--card-border); border-radius: 8px 8px 0 0; color: var(--text-secondary); font-size: 14px; cursor: pointer; font-family: inherit; border-bottom: none; }
+    .tab.active { background: var(--card-bg); color: var(--text); }
 
-    /* 表格容器 */
-    .table-wrap {
-      background: #fff; border: 1px solid #ddd; border-radius: 0 10px 10px 10px;
-      overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    }
-    .table-scroll { max-height: 55vh; overflow-y: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    thead { position: sticky; top: 0; z-index: 1; }
-    th {
-      background: #fafafa; padding: 12px 14px; text-align: left;
-      font-size: 13px; font-weight: 600; color: var(--text-secondary);
-      border-bottom: 2px solid #eee; white-space: nowrap;
-    }
-    td {
-      padding: 11px 14px; font-size: 14px; border-bottom: 1px solid #f5f5f5;
-    }
-    tr:hover td { background: #fafafa; }
-    td.status-badge { text-align: center; }
-    .badge {
-      display: inline-block; padding: 3px 10px; border-radius: 12px;
-      font-size: 12px; font-weight: 600;
-    }
-    .badge-done { background: #e8f5e9; color: #2e7d32; }
-    .badge-pending { background: #fff3e0; color: #e65100; }
-    .badge-free { background: #e3f2fd; color: #1565c0; }
-    td.group-tag {
-      max-width: 140px; white-space: nowrap; overflow: hidden;
-      text-overflow: ellipsis; font-size: 13px; color: var(--text-secondary);
-    }
-    td.amount-free { color: #999; }
+    .table-wrap { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 0 0 12px 12px; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th { text-align: left; padding: 12px 14px; color: var(--text-secondary); font-size: 12px; font-weight: 600; border-bottom: 1px solid var(--card-border); white-space: nowrap; }
+    td { padding: 10px 14px; border-bottom: 1px solid rgba(42,42,74,0.3); white-space: nowrap; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+    tr:last-child td { border-bottom: none; }
 
-    .action-btn {
-      padding: 4px 10px; border: 1px solid #ddd; border-radius: 6px;
-      background: #fff; font-size: 12px; cursor: pointer; font-family: inherit;
-      transition: all 0.2s;
-    }
-    .action-btn.undo { color: var(--warning); border-color: #ffe0b2; }
-    .action-btn.undo:hover { background: #fff8e1; border-color: var(--warning); }
-    .action-btn:active { transform: scale(0.95); }
+    .group-tag { font-size: 12px; color: var(--text-secondary); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+    .badge-done { background: rgba(0,200,83,0.15); color: var(--success); }
+    .badge-pending { background: rgba(255,145,0,0.15); color: var(--warning); }
+    .badge-free { background: rgba(100,100,255,0.15); color: #8b8bff; }
+    .badge-paid { background: rgba(229,9,20,0.15); color: var(--primary); }
+    .action-btn { padding: 4px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; }
+    .action-btn.undo { background: rgba(255,145,0,0.2); color: var(--warning); }
+    .action-btn.undo:hover { background: rgba(255,145,0,0.4); }
+    .action-btn.confirm { background: rgba(0,200,83,0.2); color: var(--success); }
+    .action-btn.cancel { background: rgba(229,9,20,0.2); color: var(--primary); }
 
-    .empty-state {
-      text-align: center; padding: 48px 20px; color: var(--text-secondary);
-    }
-    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
-
-    /* toast */
-    .toast {
-      position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-120px);
-      background: #333; color: #fff; padding: 12px 24px; border-radius: 10px;
-      font-size: 14px; z-index: 2000; transition: transform 0.3s ease;
-    }
-    .toast.show { transform: translateX(-50%) translateY(0); }
-
-    @media (max-width: 640px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      th, td { padding: 8px 10px; font-size: 12px; }
-    }
+    .auto-refresh { font-size: 11px; color: var(--text-secondary); text-align: center; padding: 12px; }
   </style>
 </head>
 <body>
-  <!-- 登录遮罩 -->
-  <div class="login-overlay" id="loginOverlay">
-    <div class="login-card">
-      <h2>🔐 管理后台</h2>
-      <p>请输入管理密码</p>
-      <input type="password" class="login-input" id="passwordInput"
-        placeholder="输入密码" autocomplete="off" maxlength="20"/>
-      <div class="login-error" id="loginError">密码错误，请重试</div>
-      <button class="login-btn" onclick="doLogin()">进入后台</button>
+
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <h2>🔐 后台管理</h2>
+    <p>请输入管理员密码</p>
+    <input type="password" class="login-input" id="passwordInput" placeholder="输入密码..." onkeydown="if(event.key==='Enter')login()"/>
+    <button class="login-btn" onclick="login()">登录</button>
+    <div class="login-error" id="loginError">密码错误，请重试</div>
+  </div>
+</div>
+
+<div class="main-content" id="mainContent">
+  <div class="top-bar">
+    <div>
+      <h1>🎬 小器皿观团 · 签到管理</h1>
+      <div class="badge">《蜘蛛侠-崭新之日》</div>
+    </div>
+    <div class="btns">
+      <button class="btn-sm btn-sm-export" onclick="exportCSV()">📥 导出CSV</button>
+      <button class="btn-sm btn-sm-clear" onclick="clearAll()">🗑️ 清空记录</button>
     </div>
   </div>
 
-  <!-- Toast -->
-  <div class="toast" id="toast"></div>
-
-  <!-- 主内容 -->
-  <div class="admin-container" id="mainContent" style="display:none;">
-    <div class="top-bar">
-      <h1><span class="icon">🎬</span> 签到管理后台</h1>
-      <div class="auto-refresh">
-        <span>🔄 自动刷新 30s</span>
-        <span id="lastRefresh"></span>
-      </div>
-      <div class="top-actions">
-        <button onclick="refreshData()">🔄 刷新</button>
-        <button onclick="exportCSV()">📥 导出CSV</button>
-        <button class="danger" onclick="resetAll()">🗑️ 清空签到</button>
-        <button onclick="doLogout()">退出</button>
-      </div>
+  <div class="stats-grid">
+    <div class="stat-card total">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">名单总人数</div>
     </div>
-
-    <!-- 统计卡片 -->
-    <div class="stats-grid">
-      <div class="stat-card total">
-        <div class="stat-num" id="statTotal">0</div>
-        <div class="stat-label">名单总人数</div>
-      </div>
-      <div class="stat-card checked">
-        <div class="stat-num" id="statChecked">0</div>
-        <div class="stat-label">已签到</div>
-        <div class="stat-bar"><div class="stat-bar-fill" id="statBar" style="width:0%"></div></div>
-      </div>
-      <div class="stat-card paid">
-        <div class="stat-num" id="statPaid">0</div>
-        <div class="stat-label">已支付</div>
-      </div>
-      <div class="stat-card unpaid">
-        <div class="stat-num" id="statUnpaid">0</div>
-        <div class="stat-label">待收金额</div>
-      </div>
+    <div class="stat-card checked">
+      <div class="stat-num" id="statChecked">0</div>
+      <div class="stat-label">已签到</div>
+      <div class="stat-bar"><div class="stat-bar-fill" id="statBar" style="width:0%"></div></div>
     </div>
-
-    <!-- 筛选栏 -->
-    <div class="filter-bar">
-      <label>🏷️ 小组：</label>
-      <select id="filterGroup" onchange="renderTables()">
-        <option value="">全部小组</option>
-      </select>
-      <label style="margin-left:12px;">🔍 搜索：</label>
-      <input type="text" class="search-input" id="filterSearch"
-        placeholder="输入姓名搜索..." oninput="renderTables()"/>
+    <div class="stat-card paid">
+      <div class="stat-num" id="statPaid">0</div>
+      <div class="stat-label">已支付</div>
     </div>
-
-    <!-- 标签页 -->
-    <div class="tabs">
-      <button class="tab active" id="tabAll" onclick="switchTab('all')">全部</button>
-      <button class="tab" id="tabDone" onclick="switchTab('done')">已签到</button>
-      <button class="tab" id="tabPending" onclick="switchTab('pending')">待签到</button>
-    </div>
-
-    <div class="table-wrap">
-      <div class="table-scroll" id="tableContent"></div>
+    <div class="stat-card unpaid">
+      <div class="stat-num" id="statUnpaid">0</div>
+      <div class="stat-label">待收金额</div>
     </div>
   </div>
 
-  <script>
-    // ============ 数据 ============
-    var signupData = [
+  <div class="filter-bar">
+    <label>🏷️ 小组：</label>
+    <select id="filterGroup" onchange="renderTables()"><option value="">全部小组</option></select>
+    <label style="margin-left:12px;">🔍 搜索：</label>
+    <input type="text" class="search-input" id="filterSearch" placeholder="输入姓名搜索..." oninput="renderTables()"/>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" id="tabAll" onclick="switchTab('all')">全部</button>
+    <button class="tab" id="tabDone" onclick="switchTab('done')">已签到</button>
+    <button class="tab" id="tabPending" onclick="switchTab('pending')">待签到</button>
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-scroll" id="tableContent"></div>
+  </div>
+  <div class="auto-refresh">数据每 30 秒自动刷新</div>
+</div>
+
+<script>
+  // ============ 数据 ============
+  var signupData = [
       {no:"蜘蛛侠069",name:"郭聪聪",phone:"18559649101",people:1,amount:15,group:"大卫不怕巨人队"},
       {no:"蜘蛛侠070",name:"黄琪",phone:"13395051663",people:1,amount:15,group:"大卫不怕巨人队"},
       {no:"蜘蛛侠071",name:"曾泽航",phone:"18850155135",people:1,amount:15,group:"路得继续跟随组"},
@@ -320,386 +205,245 @@
       {no:"蜘蛛侠126",name:"李牧师",phone:"",people:1,amount:0,group:"全职"},
       {no:"蜘蛛侠128",name:"福妹",phone:"",people:1,amount:15,group:"新人组"},
       {no:"蜘蛛侠129",name:"嘉豪",phone:"",people:1,amount:15,group:"新人组"}
-    ];
+  ];
 
-    // ============ 登录 ============
-    var ADMIN_PWD = 'admin123';
-    var currentTab = 'all';
+  var PASSWORD = "admin123";
+  var API_BASE = window.location.origin;
+  var checkedInSet = {};
+  var currentTab = "all";
 
-    function doLogin() {
-      var pwd = document.getElementById('passwordInput').value;
-      if (pwd === ADMIN_PWD) {
-        document.getElementById('loginOverlay').classList.add('hidden');
-        document.getElementById('mainContent').style.display = 'block';
-        initAdmin();
-      } else {
-        var el = document.getElementById('loginError');
-        el.classList.add('show');
-        setTimeout(function() { el.classList.remove('show'); }, 2000);
-        document.getElementById('passwordInput').value = '';
-        document.getElementById('passwordInput').focus();
-      }
+  // ============ 登录 ============
+  function login() {
+    var pwd = document.getElementById("passwordInput").value;
+    if (pwd === PASSWORD) {
+      document.getElementById("loginOverlay").style.display = "none";
+      document.getElementById("mainContent").classList.add("show");
+      init();
+    } else {
+      document.getElementById("loginError").classList.add("show");
     }
+  }
 
-    document.getElementById('passwordInput').addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') doLogin();
+  // ============ 初始化 ============
+  function init() {
+    // 填充小组筛选
+    var groups = {};
+    signupData.forEach(function(d) {
+      groups[d.group || "未分组"] = true;
     });
+    var sel = document.getElementById("filterGroup");
+    Object.keys(groups).sort().forEach(function(g) {
+      var o = document.createElement("option");
+      o.value = g; o.textContent = g;
+      sel.appendChild(o);
+    });
+    refreshAll();
+    setInterval(refreshAll, 30000);
+  }
 
-    function doLogout() {
-      document.getElementById('loginOverlay').classList.remove('hidden');
-      document.getElementById('mainContent').style.display = 'none';
-      document.getElementById('passwordInput').value = '';
-      stopAutoRefresh();
-    }
-
-    // ============ 初始化 ============
-    function initAdmin() {
-      buildGroupFilter();
-      renderAll();
-      startAutoRefresh();
-      document.getElementById('passwordInput').focus();
-    }
-
-    var API_BASE = window.location.origin;
-    var checkedInCache = {};
-
-    // 从服务器加载签到数据
-    function loadCheckedIn() {
-      return fetch(API_BASE + '/api/checkins')
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-          checkedInCache = res.data || {};
-          return checkedInCache;
-        })
-        .catch(function() {
-          // 网络错误时读 localStorage 兜底
-          try {
-            var raw = localStorage.getItem('spiderman_checkin_status');
-            if (raw) {
-              var parsed = JSON.parse(raw);
-              if (Array.isArray(parsed)) {
-                var obj = {};
-                parsed.forEach(function(id) { obj[id] = { time: '--', date: '--' }; });
-                checkedInCache = obj;
-              } else {
-                checkedInCache = parsed;
-              }
-            }
-          } catch(e) { checkedInCache = {}; }
-          return checkedInCache;
-        });
-    }
-
-    function getCheckedInSync() {
-      return checkedInCache;
-    }
-
-    function buildGroupFilter() {
-      var groups = {};
-      signupData.forEach(function(d) {
-        var g = d.group || '未分组';
-        groups[g] = (groups[g] || 0) + 1;
-      });
-      var sel = document.getElementById('filterGroup');
-      sel.innerHTML = '<option value="">全部小组</option>';
-      Object.keys(groups).sort().forEach(function(g) {
-        sel.innerHTML += '<option value="' + g + '">' + g + ' (' + groups[g] + ')</option>';
-      });
-    }
-
-    // ============ 渲染 ============
-    function renderAll() {
-      loadCheckedIn().then(function() {
+  function refreshAll() {
+    fetch(API_BASE + "/api/checkins")
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.success) { checkedInSet = res.data; }
         updateStats();
         renderTables();
-        updateLastRefresh();
-      });
-    }
+      })
+      .catch(function() { updateStats(); renderTables(); });
+  }
 
-    function updateStats() {
-      var checkedIn = getCheckedInSync();
-      var total = 0, totalAmount = 0;
-      signupData.forEach(function(d) { total += d.people; totalAmount += d.amount; });
+  function getCheckedInSync() {
+    return checkedInSet;
+  }
 
-      var checked = 0, paid = 0, unpaidAmount = 0;
-      var checkedPeople = 0;
+  function updateStats() {
+    var checkedIn = getCheckedInSync();
+    var total = 0, totalAmount = 0;
+    signupData.forEach(function(d) { total += d.people; totalAmount += d.amount; });
 
-      signupData.forEach(function(d) {
-        var info = checkedIn[d.no];
-        if (info) {
-          checked++;
-          checkedPeople += d.people;
-          if (d.amount === 0 || info.paid) {
-            paid++;
-          } else {
-            unpaidAmount += d.amount;
-          }
+    var checked = 0, paid = 0, unpaidAmount = 0;
+    var checkedPeople = 0;
+
+    signupData.forEach(function(d) {
+      var info = checkedIn[d.no];
+      if (info) {
+        checked++;
+        checkedPeople += d.people;
+        if (d.amount === 0 || info.paid) {
+          paid++;
         } else {
           unpaidAmount += d.amount;
         }
+      } else {
+        unpaidAmount += d.amount;
+      }
+    });
+
+    var rate = total > 0 ? Math.round((checkedPeople / total) * 100) : 0;
+
+    document.getElementById("statTotal").textContent = total + "人";
+    document.getElementById("statChecked").textContent = checked;
+    document.getElementById("statPaid").textContent = paid;
+    document.getElementById("statUnpaid").textContent = "¥" + unpaidAmount;
+    document.getElementById("statBar").style.width = rate + "%";
+  }
+
+  function renderTables() {
+    var checkedIn = getCheckedInSync();
+    var filterGroup = document.getElementById("filterGroup").value;
+    var search = document.getElementById("filterSearch").value.trim();
+
+    var data = [];
+    signupData.forEach(function(d) {
+      if (filterGroup && d.group !== filterGroup) return;
+      if (search && d.name.indexOf(search) === -1) return;
+      var info = checkedIn[d.no];
+      var isChecked = !!info;
+      var isFree = d.amount === 0;
+      var isPaid = info && (isFree || info.paid);
+
+      if (currentTab === "done" && !isChecked) return;
+      if (currentTab === "pending" && isChecked) return;
+
+      data.push({
+        no: d.no, name: d.name, group: d.group || "未分组",
+        people: d.people, amount: d.amount,
+        isChecked: isChecked, isPaid: isPaid, isFree: isFree,
+        time: info ? (info.time || "--") : "",
+        date: info ? (info.date || "--") : "",
+        paidTime: (info && info.paidTime) ? info.paidTime.substr(11,8) : ""
       });
+    });
 
-      var rate = total > 0 ? Math.round((checkedPeople / total) * 100) : 0;
+    var html = '<table><thead><tr>' +
+      '<th>编号</th><th>姓名</th><th>小组</th>' +
+      '<th style="text-align:center">人数</th><th style="text-align:center">金额</th>' +
+      '<th style="text-align:center">签到状态</th>' +
+      '<th style="text-align:center">支付状态</th>' +
+      '<th>签到时间</th>' +
+      '<th style="text-align:center">操作</th>' +
+      '</tr></thead><tbody>';
 
-      document.getElementById('statTotal').textContent = total + '人';
-      document.getElementById('statChecked').textContent = checked;
-      document.getElementById('statPaid').textContent = paid;
-      document.getElementById('statUnpaid').textContent = '¥' + unpaidAmount;
-      document.getElementById('statBar').style.width = rate + '%';
-    }
-
-    function renderTables() {
-      var checkedIn = getCheckedInSync();
-      var filterGroup = document.getElementById('filterGroup').value;
-      var filterSearch = document.getElementById('filterSearch').value.toLowerCase();
-
-      var list = [];
-      signupData.forEach(function(d) {
-        var dGroup = d.group || '未分组';
-        if (filterGroup && dGroup !== filterGroup) return;
-        if (filterSearch && d.name.toLowerCase().indexOf(filterSearch) === -1) return;
-
-        var info = checkedIn[d.no];
-        var isChecked = !!info;
-        var isPaid = isChecked && info.paid;
-        list.push({
-          no: d.no, name: d.name, group: dGroup,
-          people: d.people, amount: d.amount,
-          isChecked: isChecked, isPaid: isPaid,
-          time: isChecked ? (info.time || '--') : '',
-          date: isChecked ? (info.date || '--') : '',
-          paidTime: isPaid ? (info.paidTime || '--') : '',
-          paidDate: isPaid ? (info.paidDate || '--') : ''
-        });
-      });
-
-      // 按签到状态排序（未签到在前）+ 按编号排序
-      list.sort(function(a, b) {
-        if (a.isChecked !== b.isChecked) return a.isChecked ? 1 : -1;
-        return a.no.localeCompare(b.no);
-      });
-
-      // 筛选
-      var filtered = list;
-      if (currentTab === 'done') filtered = list.filter(function(x) { return x.isChecked; });
-      if (currentTab === 'pending') filtered = list.filter(function(x) { return !x.isChecked; });
-
-      renderTable(filtered);
-    }
-
-    function renderTable(data) {
-      var container = document.getElementById('tableContent');
-      if (data.length === 0) {
-        container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>暂无数据</p></div>';
-        return;
+    data.forEach(function(d) {
+      var statusHtml, statusClass;
+      if (d.isChecked) {
+        if (d.isFree) { statusHtml = "已签到（免费）"; statusClass = "badge-free"; }
+        else { statusHtml = "已签到"; statusClass = "badge-done"; }
+      } else {
+        statusHtml = "待签到"; statusClass = "badge-pending";
       }
 
-      var html = '<table><thead><tr>' +
-        '<th>编号</th><th>姓名</th><th>小组</th>' +
-        '<th style="text-align:center">人数</th><th style="text-align:center">金额</th>' +
-        '<th style="text-align:center">签到状态</th><th style="text-align:center">支付状态</th><th>时间</th>' +
-        '<th style="text-align:center">操作</th>' +
-        '</tr></thead><tbody>';
+      var payHtml;
+      if (!d.isChecked) {
+        payHtml = '<span style="color:var(--text-secondary);font-size:12px;">--</span>';
+      } else if (d.isFree) {
+        payHtml = '<span class="badge badge-free">免费</span>';
+      } else if (d.isPaid) {
+        payHtml = '<span class="badge badge-paid">已支付 ' + d.paidTime + '</span>';
+      } else {
+        payHtml = '<span class="badge badge-pending">待支付</span>';
+      }
 
-      data.forEach(function(d) {
-        var statusHtml, statusClass, payHtml, payClass, actionHtml = '-';
-        if (d.isChecked) {
-          if (d.amount === 0) {
-            statusHtml = '已签到';
-            statusClass = 'badge-done';
-            payHtml = '免费';
-            payClass = 'badge-free';
-          } else if (d.isPaid) {
-            statusHtml = '已签到';
-            statusClass = 'badge-done';
-            payHtml = '已支付';
-            payClass = 'badge-done';
-          } else {
-            statusHtml = '已签到';
-            statusClass = 'badge-done';
-            payHtml = '待支付';
-            payClass = 'badge-pending';
-          }
-          actionHtml = '<button class="action-btn undo" onclick="undoCheckin(\'' + d.no + '\')">撤销签到</button>';
-          if (d.amount > 0) {
-            if (d.isPaid) {
-              actionHtml += ' <button class="action-btn undo" onclick="togglePay(\'' + d.no + '\', false)" style="margin-top:4px;color:#e65100;border-color:#ffe0b2">取消收款</button>';
-            } else {
-              actionHtml += ' <button class="action-btn" onclick="togglePay(\'' + d.no + '\', true)" style="margin-top:4px;color:var(--success);border-color:#c8e6c9">确认收款</button>';
-            }
-          }
-        } else {
-          statusHtml = '待签到';
-          statusClass = 'badge-pending';
-          payHtml = '-';
-          payClass = '';
+      var opsHtml = "";
+      if (d.isChecked) {
+        opsHtml = '<button class="action-btn undo" onclick="undoCheckin(\'' + d.no + '\')">撤销签到</button>';
+        if (!d.isFree && !d.isPaid) {
+          opsHtml += ' <button class="action-btn confirm" onclick="confirmPay(\'' + d.no + '\')">确认收款</button>';
         }
-
-        html += '<tr>' +
-          '<td>' + d.no + '</td>' +
-          '<td><strong>' + d.name + '</strong></td>' +
-          '<td class="group-tag" title="' + d.group + '">' + d.group + '</td>' +
-          '<td style="text-align:center">' + d.people + '</td>' +
-          '<td style="text-align:center' + (d.amount === 0 ? ';color:#999' : '') + '">¥' + d.amount + '</td>' +
-          '<td class="status-badge"><span class="badge ' + statusClass + '">' + statusHtml + '</span></td>' +
-          '<td class="status-badge"><span class="badge ' + payClass + '">' + payHtml + '</span></td>' +
-          '<td>' + (d.isChecked ? (d.date + ' ' + d.time + (d.isPaid ? '<br/><span style="color:#2e7d32;font-size:11px">付 ' + d.paidTime + '</span>' : '')) : '-') + '</td>' +
-          '<td style="text-align:center">' + actionHtml + '</td>' +
-          '</tr>';
-      });
-
-      html += '</tbody></table>';
-      container.innerHTML = html;
-    }
-
-    function switchTab(tab) {
-      currentTab = tab;
-      document.getElementById('tabAll').className = 'tab' + (tab === 'all' ? ' active' : '');
-      document.getElementById('tabDone').className = 'tab' + (tab === 'done' ? ' active' : '');
-      document.getElementById('tabPending').className = 'tab' + (tab === 'pending' ? ' active' : '');
-      renderTables();
-    }
-
-    // ============ 刷新 ============
-    function refreshData() {
-      renderAll();
-      showToast('已刷新');
-    }
-
-    function updateLastRefresh() {
-      var now = new Date();
-      var h = ('0' + now.getHours()).slice(-2);
-      var m = ('0' + now.getMinutes()).slice(-2);
-      var s = ('0' + now.getSeconds()).slice(-2);
-      document.getElementById('lastRefresh').textContent = h + ':' + m + ':' + s;
-    }
-
-    var autoRefreshTimer = null;
-    function startAutoRefresh() {
-      stopAutoRefresh();
-      autoRefreshTimer = setInterval(renderAll, 30000);
-    }
-    function stopAutoRefresh() {
-      if (autoRefreshTimer) { clearInterval(autoRefreshTimer); autoRefreshTimer = null; }
-    }
-
-    // ============ 导出 ============
-    function exportCSV() {
-      var checkedIn = getCheckedInSync();
-      var rows = [['编号','姓名','小组','人数','金额','签到状态','支付状态','签到日期','签到时间','支付日期','支付时间']];
-      signupData.forEach(function(d) {
-        var info = checkedIn[d.no];
-        var payStatus = '未签到';
-        if (info) {
-          if (d.amount === 0) payStatus = '免费';
-          else if (info.paid) payStatus = '已支付';
-          else payStatus = '待支付';
+        if (d.isPaid && !d.isFree) {
+          opsHtml += ' <button class="action-btn cancel" onclick="cancelPay(\'' + d.no + '\')">取消收款</button>';
         }
-        rows.push([
-          d.no, d.name, d.group || '未分组',
-          d.people, d.amount,
-          info ? '已签到' : '待签到',
-          payStatus,
-          info ? (info.date || '') : '',
-          info ? (info.time || '') : '',
-          info && info.paid ? (info.paidDate || '') : '',
-          info && info.paid ? (info.paidTime || '') : ''
-        ]);
-      });
-      var csv = rows.map(function(r) {
-        return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
-      }).join('\n');
+      } else {
+        opsHtml = '<span style="color:var(--text-secondary);font-size:12px;">--</span>';
+      }
 
-      var blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement('a');
-      a.href = url; a.download = '签到记录_' + new Date().toISOString().slice(0,10) + '.csv';
-      document.body.appendChild(a); a.click();
-      document.body.removeChild(a); URL.revokeObjectURL(url);
-      showToast('导出成功');
-    }
+      html += '<tr>' +
+        '<td>' + d.no.replace("蜘蛛侠","") + '</td>' +
+        '<td><strong>' + d.name + '</strong></td>' +
+        '<td class="group-tag" title="' + d.group + '">' + d.group + '</td>' +
+        '<td style="text-align:center">' + d.people + '</td>' +
+        '<td style="text-align:center' + (d.amount===0?';color:#999':'') + '">¥' + d.amount + '</td>' +
+        '<td style="text-align:center"><span class="badge ' + statusClass + '">' + statusHtml + '</span></td>' +
+        '<td style="text-align:center">' + payHtml + '</td>' +
+        '<td>' + (d.isChecked ? (d.date + ' ' + d.time) : '-') + '</td>' +
+        '<td style="text-align:center">' + opsHtml + '</td>' +
+        '</tr>';
+    });
 
-    // ============ 清空 ============
-    function resetAll() {
-      if (!confirm('确定要清空所有签到记录吗？此操作不可撤销！')) return;
-      fetch(API_BASE + '/api/checkins/reset', { method: 'POST' })
-        .then(function() {
-          checkedInCache = {};
-          renderAll();
-          showToast('签到记录已清空');
-        })
-        .catch(function() {
-          try { localStorage.removeItem('spiderman_checkin_status'); } catch(e) {}
-          checkedInCache = {};
-          renderAll();
-          showToast('签到记录已清空（本地）');
-        });
-    }
+    html += '</tbody></table>';
+    document.getElementById("tableContent").innerHTML = html;
+  }
 
-    // ============ 确认/取消收款 ============
-    function togglePay(no, markAsPaid) {
-      var record = signupData.find(function(d) { return d.no === no; });
-      var name = record ? record.name : no;
-      var url = API_BASE + '/api/pay/' + encodeURIComponent(no);
-      var method = markAsPaid ? 'POST' : 'DELETE';
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+    document.getElementById("tab" + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add("active");
+    renderTables();
+  }
 
-      fetch(url, { method: method })
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-          if (res.success) {
-            if (markAsPaid) {
-              checkedInCache[no] = checkedInCache[no] || {};
-              checkedInCache[no].paid = true;
-              checkedInCache[no].paidTime = res.data ? res.data.paidTime : '--';
-              checkedInCache[no].paidDate = res.data ? res.data.paidDate : '--';
-            } else {
-              if (checkedInCache[no]) {
-                checkedInCache[no].paid = false;
-                checkedInCache[no].paidTime = '';
-                checkedInCache[no].paidDate = '';
-              }
-            }
-            renderAll();
-            showToast(markAsPaid ? '已确认「' + name + '」收款' : '已取消「' + name + '」收款');
-          }
-        })
-        .catch(function() {
-          showToast('网络错误，请刷新后重试');
-        });
-    }
+  function undoCheckin(id) {
+    if (!confirm("确定撤销 " + id + " 的签到记录？")) return;
+    fetch(API_BASE + "/api/checkin/" + encodeURIComponent(id), { method: "DELETE" })
+      .then(function(r) { return r.json(); })
+      .then(function() { delete checkedInSet[id]; refreshAll(); })
+      .catch(function() { delete checkedInSet[id]; refreshAll(); });
+  }
 
-    // ============ 撤销签到 ============
-    function undoCheckin(no) {
-      var record = signupData.find(function(d) { return d.no === no; });
-      var name = record ? record.name : no;
-      if (!confirm('确定要撤销「' + name + '」的签到记录吗？')) return;
+  function confirmPay(id) {
+    fetch(API_BASE + "/api/pay/" + encodeURIComponent(id), { method: "POST" })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.success) { checkedInSet[id] = res.data; refreshAll(); }
+      })
+      .catch(function() { checkedInSet[id].paid = true; refreshAll(); });
+  }
 
-      fetch(API_BASE + '/api/checkin/' + encodeURIComponent(no), { method: 'DELETE' })
-        .then(function(r) { return r.json(); })
-        .then(function() {
-          delete checkedInCache[no];
-          renderAll();
-          showToast('已撤销「' + name + '」的签到');
-        })
-        .catch(function() {
-          // 网络错误时本地操作
-          delete checkedInCache[no];
-          try { localStorage.setItem('spiderman_checkin_status', JSON.stringify(checkedInCache)); } catch(e) {}
-          renderAll();
-          showToast('已撤销「' + name + '」的签到（本地）');
-        });
-    }
+  function cancelPay(id) {
+    fetch(API_BASE + "/api/pay/" + encodeURIComponent(id), { method: "DELETE" })
+      .then(function(r) { return r.json(); })
+      .then(function(res) {
+        if (res.success) { checkedInSet[id] = res.data; refreshAll(); }
+      })
+      .catch(function() { delete checkedInSet[id].paid; refreshAll(); });
+  }
 
-    // ============ Toast ============
-    function showToast(msg) {
-      var el = document.getElementById('toast');
-      el.textContent = msg;
-      el.classList.add('show');
-      setTimeout(function() { el.classList.remove('show'); }, 2000);
-    }
+  function clearAll() {
+    if (!confirm("确定清空所有签到记录？此操作不可撤销！")) return;
+    fetch(API_BASE + "/api/checkins/clear", { method: "POST" })
+      .then(function() { checkedInSet = {}; refreshAll(); })
+      .catch(function() { checkedInSet = {}; refreshAll(); });
+  }
 
-    // ============ 启动 ============
-    document.getElementById('passwordInput').focus();
-  </script>
+  function exportCSV() {
+    var checkedIn = getCheckedInSync();
+    var rows = [["编号","姓名","小组","人数","金额","签到状态","支付状态","签到日期","签到时间","支付时间"]];
+    signupData.forEach(function(d) {
+      var info = checkedIn[d.no];
+      var isChecked = !!info;
+      var isFree = d.amount === 0;
+      var isPaid = info && info.paid;
+      var payStatus = "";
+      if (!isChecked) payStatus = "未签到";
+      else if (isFree) payStatus = "免费";
+      else if (isPaid) payStatus = "已支付";
+      else payStatus = "待支付";
+      rows.push([
+        d.no, d.name, d.group || "未分组",
+        d.people, d.amount,
+        isChecked ? "已签到" : "待签到",
+        payStatus,
+        info ? (info.date || "") : "",
+        info ? (info.time || "") : "",
+        (info && info.paidTime) ? info.paidTime : ""
+      ]);
+    });
+    var csv = rows.map(function(r) { return r.join(","); }).join("\n");
+    var blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "签到记录_" + new Date().toISOString().substr(0,10) + ".csv";
+    a.click();
+  }
+</script>
 </body>
 </html>
