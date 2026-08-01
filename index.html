@@ -1,150 +1,106 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>小器皿观团签到</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>小器皿观团 · 蜘蛛侠签到</title>
   <style>
     :root {
-      --bg: #0a0a14;
-      --card-bg: #1a1a2e;
-      --card-border: #2a2a4a;
-      --primary: #e50914;
-      --primary-hover: #ff1a2d;
-      --gold: #f5c518;
-      --text: #e0e0e0;
-      --text-secondary: #8888aa;
-      --input-bg: #12122a;
-      --input-border: #333366;
-      --success: #00c853;
+      --bg: #0a0a14; --card-bg: #12122a; --card-border: #2a2a4a;
+      --text: #eee; --text-secondary: #88a; --primary: #e50914;
+      --primary-hover: #ff1a2e; --gold: #f5c518; --success: #00c853;
+      --warning: #ff9100; --input-bg: #1a1a2e;
     }
-
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow-x: hidden;
+      background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", sans-serif;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 16px;
     }
+    .container { width: 100%; max-width: 420px; }
+    .header { text-align: center; padding: 20px 0 12px; }
+    .header .logo { font-size: 40px; margin-bottom: 8px; }
+    .header h1 { font-size: 22px; font-weight: 700; color: var(--gold); }
+    .header .movie-info { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
 
-    body::before {
-      content: '';
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background:
-        radial-gradient(ellipse at 20% 50%, rgba(229, 9, 20, 0.08) 0%, transparent 50%),
-        radial-gradient(ellipse at 80% 20%, rgba(245, 197, 24, 0.05) 0%, transparent 50%),
-        radial-gradient(ellipse at 50% 80%, rgba(100, 100, 255, 0.05) 0%, transparent 50%);
-      pointer-events: none; z-index: 0;
+    .steps { display: flex; align-items: center; justify-content: center; gap: 0; padding: 0 20px 20px; }
+    .step-dot {
+      width: 28px; height: 28px; border-radius: 50%;
+      border: 2px solid var(--card-border); background: transparent;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: var(--text-secondary); font-weight: 600;
+      transition: all 0.4s ease; flex-shrink: 0;
     }
-
-    .app-container { position: relative; z-index: 1; width: 100%; max-width: 440px; padding: 20px; }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 24px;
-      padding: 36px 28px;
-      position: relative;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05) inset;
-      transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
-    }
-
-    .card::before {
-      content: '';
-      position: absolute; top: 0; left: 0;
-      width: 100%; height: 3px;
-      background: linear-gradient(90deg, var(--primary), var(--gold), var(--primary));
-      opacity: 0.8;
-    }
-
-    .header { text-align: center; margin-bottom: 32px; }
-    .logo { font-size: 48px; margin-bottom: 8px; display: block; animation: float 3s ease-in-out infinite; }
-    @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    .title { font-size: 26px; font-weight: 700; color: #fff; letter-spacing: 2px; margin-bottom: 4px; }
-    .subtitle { font-size: 13px; color: var(--text-secondary); letter-spacing: 3px; }
-
-    .steps { display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 28px; }
-    .step-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--card-border); transition: all 0.3s ease; }
-    .step-dot.active { background: var(--primary); box-shadow: 0 0 12px rgba(229,9,20,0.6); width: 12px; height: 12px; }
-    .step-dot.done { background: var(--success); }
-    .step-line { width: 36px; height: 2px; background: var(--card-border); border-radius: 1px; transition: all 0.3s ease; }
+    .step-dot.active { border-color: var(--primary); color: var(--primary); background: rgba(229,9,20,0.15); }
+    .step-dot.done { border-color: var(--success); color: var(--success); background: rgba(0,200,83,0.15); }
+    .step-line { width: 48px; height: 2px; background: var(--card-border); transition: background 0.4s ease; }
     .step-line.done { background: var(--success); }
 
-    .input-group { margin-bottom: 20px; }
-    .input-label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
-    .input-wrapper { position: relative; }
-    .input-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text-secondary); pointer-events: none; }
-    .name-input {
-      width: 100%; padding: 15px 16px 15px 46px;
-      background: var(--input-bg); border: 2px solid var(--input-border);
-      border-radius: 14px; font-size: 17px; color: #fff; outline: none;
-      transition: all 0.3s ease; font-family: inherit;
+    .card {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 16px; padding: 24px 20px; margin-bottom: 12px;
+      backdrop-filter: blur(10px);
     }
-    .name-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(229,9,20,0.1); }
-    .name-input::placeholder { color: #555; }
+    .card-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+    .search-input {
+      width: 100%; padding: 14px 16px; background: var(--input-bg);
+      border: 2px solid var(--card-border); border-radius: 12px;
+      font-size: 16px; color: var(--text); outline: none; transition: border-color 0.3s;
+      font-family: inherit;
+    }
+    .search-input:focus { border-color: var(--primary); }
+    .search-input::placeholder { color: #555; }
+
+    .suggestions {
+      margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px;
+      max-height: 240px; overflow-y: auto;
+    }
+    .suggest-item {
+      padding: 10px 14px; background: var(--input-bg); border: 1px solid var(--card-border);
+      border-radius: 10px; cursor: pointer; font-size: 14px; transition: all 0.2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .suggest-item:hover { border-color: var(--primary); background: rgba(229,9,20,0.1); }
+    .suggest-item .s-icon { font-size: 18px; }
+    .suggest-item .s-group { font-size: 11px; color: var(--text-secondary); margin-left: auto; }
 
     .btn {
-      display: block; width: 100%; padding: 15px;
-      border: none; border-radius: 14px; font-size: 16px; font-weight: 600;
-      cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-      font-family: inherit; letter-spacing: 1px;
+      display: block; width: 100%; padding: 15px; border-radius: 12px;
+      font-size: 16px; font-weight: 600; cursor: pointer; border: none;
+      transition: all 0.2s ease; font-family: inherit;
     }
-    .btn-primary { background: linear-gradient(135deg, var(--primary), #c70812); color: #fff; box-shadow: 0 8px 24px rgba(229,9,20,0.3); }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #c41121);
+      color: #fff; box-shadow: 0 8px 24px rgba(229,9,20,0.3);
+      margin-top: 14px;
+    }
     .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(229,9,20,0.4); }
-    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
     .btn-outline { background: transparent; border: 2px solid var(--card-border); color: var(--text-secondary); margin-top: 10px; }
     .btn-outline:hover { border-color: var(--text); color: #fff; }
 
-    .result-section { display: none; animation: slideUp 0.4s ease; }
+    .result-section { display: none; }
     .result-section.show { display: block; }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden { display: none !important; }
 
-    .result-card {
-      background: var(--input-bg); border: 1px solid var(--card-border);
-      border-radius: 18px; padding: 20px; margin-bottom: 20px;
-    }
-    .result-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; }
-    .result-row + .result-row { border-top: 1px solid rgba(255,255,255,0.06); }
-    .result-label { font-size: 14px; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; }
-    .result-label .icon { font-size: 18px; }
-    .result-value { font-size: 18px; font-weight: 700; color: #fff; }
-    .result-value.amount { color: var(--gold); font-size: 22px; }
-    .result-value.amount.free { color: var(--success); }
-    .result-value.group-name { font-size: 13px; font-weight: 500; color: #aab; max-width: 180px; text-align: right; line-height: 1.3; }
-    .result-value.name-display { font-size: 16px; }
+    .result-card { background: var(--input-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+    .result-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(42,42,74,0.5); }
+    .result-row:last-child { border-bottom: none; }
+    .result-label { font-size: 13px; color: var(--text-secondary); }
+    .result-value { font-size: 15px; font-weight: 600; }
+    .result-value.amount { color: var(--gold); }
+    .result-value.free { color: var(--success); }
 
-    .movie-info {
-      background: rgba(245,197,24,0.08); border: 1px solid rgba(245,197,24,0.2);
-      border-radius: 12px; padding: 10px 14px; margin-bottom: 20px;
-      font-size: 13px; color: var(--gold); text-align: center; line-height: 1.6;
-    }
+    .movie-detail { font-size: 12px; color: var(--text-secondary); margin-top: 8px; text-align: center; line-height: 1.6; }
 
-    .stats-bar {
-      display: flex; gap: 8px; margin-bottom: 20px;
+    .checked-in-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,200,83,0.15); border: 1px solid rgba(0,200,83,0.3);
+      color: var(--success); padding: 5px 12px; border-radius: 20px;
+      font-size: 13px; font-weight: 600;
     }
-    .stat-item {
-      flex: 1; background: var(--input-bg); border: 1px solid var(--card-border);
-      border-radius: 12px; padding: 10px 8px; text-align: center;
-    }
-    .stat-value { font-size: 20px; font-weight: 700; color: #fff; }
-    .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
-
-    .error-msg {
-      background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.3);
-      border-radius: 12px; padding: 12px 16px; color: var(--primary);
-      font-size: 14px; text-align: center; margin-bottom: 16px;
-      display: none; animation: shake 0.4s ease;
-    }
-    .error-msg.show { display: block; }
-    @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
 
     .success-toast {
       position: fixed; top: 30px; left: 50%;
@@ -156,104 +112,57 @@
     }
     .success-toast.show { transform: translateX(-50%) translateY(0); }
 
-    .checked-in-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: rgba(0,200,83,0.15); border: 1px solid rgba(0,200,83,0.3);
-      color: var(--success); padding: 5px 12px; border-radius: 20px;
-      font-size: 13px; font-weight: 600;
-    }
+    .error-msg { display: none; color: var(--primary); font-size: 13px; text-align: center; margin-top: 10px; }
+    .error-msg.show { display: block; }
 
     .loading-spinner {
-      display: inline-block; width: 20px; height: 20px;
-      border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff;
-      border-radius: 50%; animation: spin 0.6s linear infinite;
+      display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%; animation: spin 0.6s linear infinite;
+      vertical-align: middle; margin-right: 6px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .btn .loading-spinner { margin-right: 8px; }
-
-    @media (max-width: 480px) {
-      .card { padding: 24px 18px; }
-      .title { font-size: 22px; }
-    }
-
-    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="success-toast" id="successToast">签到成功！</div>
-
-  <div class="app-container">
-    <div class="card">
-      <div class="header">
-        <span class="logo">🎬</span>
-        <h1 class="title">小器皿观团签到</h1>
-        <p class="subtitle">《蜘蛛侠-崭新之日》</p>
-      </div>
-
-      <div class="steps">
-        <div class="step-dot active" id="stepDot1"></div>
-        <div class="step-line" id="stepLine1"></div>
-        <div class="step-dot" id="stepDot2"></div>
-      </div>
-
-      <div class="error-msg" id="errorMsg"></div>
-
-      <!-- 步骤1: 输入名字查询 -->
-      <div id="step1">
-        <div class="input-group">
-          <label class="input-label">请输入您的姓名查询</label>
-          <div class="input-wrapper">
-            <span class="input-icon">👤</span>
-            <input type="text" class="name-input" id="nameInput"
-              placeholder="输入姓名，支持模糊匹配" autocomplete="off" maxlength="30"/>
-          </div>
-        </div>
-        <button class="btn btn-primary" id="searchBtn" onclick="searchBooking()">
-          查询观影信息
-        </button>
-      </div>
-
-      <!-- 步骤2: 查询结果 + 确认签到 -->
-      <div class="result-section" id="step2">
-        <div class="movie-info" id="movieInfo"></div>
-        <div class="result-card">
-          <div class="result-row">
-            <span class="result-label"><span class="icon">👤</span> 姓名</span>
-            <span class="result-value name-display" id="resultName">--</span>
-          </div>
-          <div class="result-row">
-            <span class="result-label"><span class="icon">🏷️</span> 所属小组</span>
-            <span class="result-value group-name" id="resultGroup">--</span>
-          </div>
-          <div class="result-row">
-            <span class="result-label"><span class="icon">🎟️</span> 观影人数</span>
-            <span class="result-value" id="resultPeople">--</span>
-          </div>
-          <div class="result-row">
-            <span class="result-label"><span class="icon">💰</span> 支付金额</span>
-            <span class="result-value amount" id="resultAmount">--</span>
-          </div>
-          <div class="result-row">
-            <span class="result-label"><span class="icon">📋</span> 签到状态</span>
-            <span id="resultStatus"><span style="color: var(--text-secondary);">待签到</span></span>
-          </div>
-        </div>
-        <button class="btn btn-primary" id="checkinBtn" onclick="confirmCheckin()">
-          确认签到
-        </button>
-        <button class="btn btn-outline" onclick="goBack()">返回重新查询</button>
-      </div>
-
-      <!-- 签到完成 -->
-      <div class="result-section" id="step3">
-        <div class="result-card" style="text-align: center; border-color: rgba(0,200,83,0.3);">
-          <div style="font-size: 56px; margin-bottom: 16px;">🎉</div>
-          <div style="font-size: 20px; font-weight: 700; color: var(--success); margin-bottom: 8px;">签到成功</div>
-          <div style="color: var(--text-secondary); font-size: 14px;" id="step3Detail"></div>
-        </div>
-        <button class="btn btn-outline" onclick="resetAll()">签到下一位</button>
-      </div>
+  <div class="container">
+    <div class="header">
+      <div class="logo">🎬</div>
+      <h1>小器皿观团签到</h1>
+      <div class="movie-info">《蜘蛛侠-崭新之日》 · 2026年8月</div>
     </div>
+
+    <div class="steps">
+      <div class="step-dot active" id="stepDot1">1</div>
+      <div class="step-line" id="stepLine1"></div>
+      <div class="step-dot" id="stepDot2">2</div>
+    </div>
+
+    <!-- Step 1: Search -->
+    <div class="result-section show" id="step1">
+      <div class="card">
+        <div class="card-title">请输入您的姓名</div>
+        <input type="text" class="search-input" id="nameInput" placeholder="输入姓名查询签到信息..." autocomplete="off"/>
+        <div class="suggestions" id="suggestions"></div>
+      </div>
+      <div class="error-msg" id="errorMsg">未找到记录，请确认姓名后重试</div>
+    </div>
+
+    <!-- Step 2: Confirm Checkin -->
+    <div class="result-section" id="step2">
+      <div class="result-card" id="resultCard">
+        <div id="movieInfo" class="movie-detail"></div>
+        <div class="result-row"><span class="result-label">姓名</span><span class="result-value" id="resultName">--</span></div>
+        <div class="result-row"><span class="result-label">小组</span><span class="result-value" id="resultGroup">--</span></div>
+        <div class="result-row"><span class="result-label">人数</span><span class="result-value" id="resultPeople">--</span></div>
+        <div class="result-row"><span class="result-label">金额</span><span class="result-value" id="resultAmount">--</span></div>
+        <div class="result-row"><span class="result-label">状态</span><span id="resultStatus">--</span></div>
+      </div>
+      <button class="btn btn-primary" id="checkinBtn" onclick="confirmCheckin()">确认签到</button>
+      <button class="btn btn-outline" onclick="resetAll()">重新查询</button>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="success-toast" id="successToast">签到成功！</div>
   </div>
 
   <script>
@@ -286,7 +195,7 @@
       {no:"蜘蛛侠094",name:"陈睿敏",phone:"13338468647",people:1,amount:15,group:"新人组"},
       {no:"蜘蛛侠095",name:"陈丽洪  陈东滨  陈宇璇 陈宇璠",phone:"13720889920",people:4,amount:60,group:"夫妻小组"},
       {no:"蜘蛛侠097",name:"张景灵，林群英，张一泽",phone:"17605085072",people:3,amount:45,group:"夫妻小组"},
-      {no:"蜘蛛侠098",name:"陈思维 林珍 陈宥槿 陈宥鑫",phone:"17268209959",people:4,amount:60,group:"夫妻小组"},
+      {no:"蜘蛛侠098",name:"林珍 陈宥槿",phone:"17268209959",people:2,amount:30,group:"夫妻小组"},
       {no:"蜘蛛侠099",name:"林施旻",phone:"17859931230",people:1,amount:15,group:"以斯帖为此刻站出来组"},
       {no:"蜘蛛侠100",name:"张晓龙",phone:"13030841475",people:1,amount:15,group:"以斯帖为此刻站出来组"},
       {no:"蜘蛛侠101",name:"李愿",phone:"19112025347",people:1,amount:0,group:"全职"},
@@ -318,204 +227,148 @@
       {no:"蜘蛛侠129",name:"嘉豪",phone:"",people:1,amount:15,group:"新人组"}
     ];
 
-    // ============ 签到状态（通过服务器 API 集中存储）============
     var API_BASE = window.location.origin;
-    var checkedInSet = {};  // { "蜘蛛侠069": { time: "14:58:30", date: "2026-08-01" }, ... }
+    var currentRecord = null;
+    var currentMatchName = "";
+    var checkedInSet = {};
 
+    var step1 = document.getElementById("step1");
+    var step2 = document.getElementById("step2");
+    var nameInput = document.getElementById("nameInput");
+    var suggestions = document.getElementById("suggestions");
+    var errorMsg = document.getElementById("errorMsg");
+    var resultCard = document.getElementById("resultCard");
+    var movieInfo = document.getElementById("movieInfo");
+    var resultName = document.getElementById("resultName");
+    var resultGroup = document.getElementById("resultGroup");
+    var resultPeople = document.getElementById("resultPeople");
+    var resultAmount = document.getElementById("resultAmount");
+    var resultStatus = document.getElementById("resultStatus");
+    var checkinBtn = document.getElementById("checkinBtn");
+    var successToast = document.getElementById("successToast");
+    var stepDot1 = document.getElementById("stepDot1");
+    var stepDot2 = document.getElementById("stepDot2");
+    var stepLine1 = document.getElementById("stepLine1");
+
+    // ============ 加载签到状态 ============
     function loadCheckedIn() {
-      return fetch(API_BASE + '/api/checkins')
+      fetch(API_BASE + "/api/checkins")
         .then(function(r) { return r.json(); })
         .then(function(res) {
-          checkedInSet = res.data || {};
+          if (res.success) { checkedInSet = res.data; }
         })
         .catch(function() {
-          // 网络错误时兜底读 localStorage
           try {
-            var s = localStorage.getItem('spiderman_checkin_status');
-            if (s) {
-              var p = JSON.parse(s);
-              if (Array.isArray(p)) {
-                p.forEach(function(id) { checkedInSet[id] = { time: '--', date: '--' }; });
-              } else {
-                checkedInSet = p;
-              }
-            }
+            var raw = localStorage.getItem("spiderman_checkin_status");
+            if (raw) checkedInSet = JSON.parse(raw);
           } catch(e) {}
         });
     }
+
+    // ============ 保存签到状态 ============
     function saveCheckedIn(id, callback) {
-      fetch(API_BASE + '/api/checkin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      fetch(API_BASE + "/api/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: id })
       })
       .then(function(r) { return r.json(); })
       .then(function(res) {
         if (res.success) {
           checkedInSet[id] = res.data;
-          if (callback) callback(true);
-        } else {
-          if (callback) callback(false);
-        }
+          try { localStorage.setItem("spiderman_checkin_status", JSON.stringify(checkedInSet)); } catch(e) {}
+          callback(true);
+        } else { callback(false); }
       })
       .catch(function() {
-        // 网络错误时本地兜底
-        var now = new Date();
-        var h = ('0' + now.getHours()).slice(-2);
-        var m = ('0' + now.getMinutes()).slice(-2);
-        var s = ('0' + now.getSeconds()).slice(-2);
-        var month = ('0' + (now.getMonth() + 1)).slice(-2);
-        var day = ('0' + now.getDate()).slice(-2);
-        checkedInSet[id] = {
-          time: h + ':' + m + ':' + s,
-          date: now.getFullYear() + '-' + month + '-' + day
-        };
-        try { localStorage.setItem('spiderman_checkin_status', JSON.stringify(checkedInSet)); } catch(e) {}
-        if (callback) callback(true);
+        var now = new Date(), h = ("0"+now.getHours()).slice(-2), m = ("0"+now.getMinutes()).slice(-2), s = ("0"+now.getSeconds()).slice(-2);
+        var month = ("0"+(now.getMonth()+1)).slice(-2), day = ("0"+now.getDate()).slice(-2);
+        checkedInSet[id] = { time: h+":"+m+":"+s, date: now.getFullYear()+"-"+month+"-"+day };
+        try { localStorage.setItem("spiderman_checkin_status", JSON.stringify(checkedInSet)); } catch(e) {}
+        callback(true);
       });
     }
 
-    loadCheckedIn();
+    // ============ 搜索建议 ============
+    nameInput.addEventListener("input", function() {
+      var q = this.value.trim();
+      suggestions.innerHTML = "";
+      errorMsg.classList.remove("show");
+      if (!q) return;
 
-    // ============ 构建搜索索引 ============
-    var nameIndex = {};
-    signupData.forEach(function(d) {
-      // 精确匹配
-      nameIndex[d.name] = d;
-      // 提取核心名字（去掉括号备注）
-      var core = d.name.replace(/[（(].*?[）)]/g, '').trim();
-      if (core && core !== d.name) {
-        if (!nameIndex[core]) nameIndex[core] = d;
-      }
-      // 多人名拆分（空格、中文逗号分隔）
-      var parts = d.name.split(/[，,\s]+/);
-      parts.forEach(function(p) {
-        p = p.trim();
-        if (p && p.length >= 2 && !nameIndex[p]) {
-          nameIndex[p] = d;
-        }
+      var matches = [];
+      signupData.forEach(function(d) {
+        var score = matchScore(q, d.name);
+        if (score >= 0) matches.push({ record: d, score: score });
+      });
+      matches.sort(function(a, b) { return b.score - a.score; });
+      matches = matches.slice(0, 8);
+
+      matches.forEach(function(m) {
+        var div = document.createElement("div");
+        div.className = "suggest-item";
+        div.innerHTML = '<span class="s-icon">👤</span>' + m.record.name + '<span class="s-group">' + (m.record.group||"") + '</span>';
+        div.onclick = function() { selectMatch(m.record, m.record.name); };
+        suggestions.appendChild(div);
       });
     });
 
-    // ============ 全局状态 ============
-    var currentRecord = null;
-    var currentMatchName = '';
+    function matchScore(query, name) {
+      if (!query || !name) return -1;
+      var q = query.toLowerCase(), n = name.toLowerCase();
+      if (n === q) return 100;
+      if (n.indexOf(q) === 0) return 80;
+      if (n.indexOf(q) >= 0) return 60;
+      var parts = n.split(/[,，、\s]+/);
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i] === q) return 75;
+        if (parts[i].indexOf(q) === 0) return 55;
+        if (parts[i].indexOf(q) >= 0) return 40;
+      }
+      return -1;
+    }
 
-    // DOM
-    var nameInput = document.getElementById('nameInput');
-    var searchBtn = document.getElementById('searchBtn');
-    var step1 = document.getElementById('step1');
-    var step2 = document.getElementById('step2');
-    var step3 = document.getElementById('step3');
-    var errorMsg = document.getElementById('errorMsg');
-    var movieInfo = document.getElementById('movieInfo');
-    var resultName = document.getElementById('resultName');
-    var resultGroup = document.getElementById('resultGroup');
-    var resultPeople = document.getElementById('resultPeople');
-    var resultAmount = document.getElementById('resultAmount');
-    var resultStatus = document.getElementById('resultStatus');
-    var checkinBtn = document.getElementById('checkinBtn');
-    var successToast = document.getElementById('successToast');
-
-    var stepDot1 = document.getElementById('stepDot1');
-    var stepDot2 = document.getElementById('stepDot2');
-    var stepLine1 = document.getElementById('stepLine1');
-
-    // ============ 搜索 ============
-    nameInput.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter') searchBooking();
+    nameInput.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        var items = suggestions.children;
+        if (items.length === 1) { items[0].click(); } else if (items.length > 0) { items[0].click(); }
+      }
     });
 
-    function searchBooking() {
-      var input = nameInput.value.trim();
-      errorMsg.classList.remove('show');
+    // ============ 选择匹配项 ============
+    function selectMatch(record, input) {
+      suggestions.innerHTML = "";
+      currentRecord = record;
+      currentMatchName = input;
+      var checkInfo = checkedInSet[record.no];
+      var isChecked = !!checkInfo;
+      var isFree = record.amount === 0;
 
-      if (!input) {
-        showError('请输入姓名后再查询');
-        nameInput.focus();
-        return;
+      movieInfo.innerHTML = "电影：《蜘蛛侠-崭新之日》<br>活动时间：2026年8月";
+      resultName.textContent = record.name;
+      resultGroup.textContent = record.group || "未分组";
+      resultPeople.textContent = record.people + " 人";
+      if (isFree) {
+        resultAmount.innerHTML = "免费（¥0.00）";
+        resultAmount.classList.add("free");
+      } else {
+        resultAmount.textContent = "¥" + record.amount.toFixed(2);
+        resultAmount.classList.remove("free");
       }
 
-      searchBtn.disabled = true;
-      searchBtn.innerHTML = '<span class="loading-spinner"></span> 查询中...';
-
-      setTimeout(function() {
-        searchBtn.disabled = false;
-        searchBtn.innerHTML = '查询观影信息';
-
-        var record = findRecord(input);
-
-        if (!record) {
-          showError('未找到「' + input + '」的观影记录，请检查姓名。可尝试输入姓名中的部分文字');
-          return;
-        }
-
-        currentRecord = record;
-        currentMatchName = input;
-        var checkInfo = checkedInSet[record.no];
-        var isChecked = !!checkInfo;
-
-        // 显示电影信息
-        movieInfo.innerHTML = '电影：《蜘蛛侠-崭新之日》<br>活动时间：2026年8月';
-
-        // 显示详情
-        resultName.textContent = record.name;
-        resultGroup.textContent = record.group || '未分组';
-        resultPeople.textContent = record.people + ' 人';
-        if (record.amount === 0) {
-          resultAmount.innerHTML = '免费（¥0.00）';
-          resultAmount.classList.add('free');
-        } else {
-          resultAmount.textContent = '¥' + record.amount.toFixed(2);
-          resultAmount.classList.remove('free');
-        }
-
-        if (isChecked) {
-          resultStatus.innerHTML = '<span class="checked-in-badge">✅ 已签到</span>';
-          checkinBtn.textContent = '已签到';
-          checkinBtn.disabled = true;
-          // 已签到直接显示完成页
-          step1.classList.add('hidden');
-          step2.classList.remove('show');
-          step3.classList.remove('show');
-          finishAll();
-          return;
-        }
-
+      if (isChecked) {
+        resultStatus.innerHTML = '<span class="checked-in-badge">✅ 已签到</span>';
+        checkinBtn.textContent = "已签到";
+        checkinBtn.disabled = true;
+      } else {
         resultStatus.innerHTML = '<span style="color: var(--text-secondary);">待签到</span>';
-        checkinBtn.textContent = '确认签到';
+        checkinBtn.textContent = "确认签到";
         checkinBtn.disabled = false;
-
-        // 切换步骤
-        step1.classList.add('hidden');
-        step3.classList.remove('show');
-        step2.classList.add('show');
-        updateSteps(2);
-      }, 400);
-    }
-
-    function findRecord(input) {
-      // 1. 精确匹配
-      if (nameIndex[input]) return nameIndex[input];
-
-      // 2. 包含匹配（输入是名字的子串）
-      var inputLower = input.toLowerCase();
-      for (var i = 0; i < signupData.length; i++) {
-        var d = signupData[i];
-        if (d.name.toLowerCase().indexOf(inputLower) !== -1) return d;
       }
 
-      // 3. 拆分后匹配
-      for (var i = 0; i < signupData.length; i++) {
-        var d = signupData[i];
-        var parts = d.name.split(/[，,\s]+/);
-        for (var j = 0; j < parts.length; j++) {
-          var p = parts[j].replace(/[（(].*?[）)]/g, '').trim();
-          if (p && p.toLowerCase() === inputLower) return d;
-        }
-      }
-
-      return null;
+      step1.classList.add("hidden");
+      step2.classList.add("show");
+      updateSteps(2);
     }
 
     // ============ 确认签到 ============
@@ -527,73 +380,35 @@
 
       saveCheckedIn(currentRecord.no, function(success) {
         resultStatus.innerHTML = '<span class="checked-in-badge">✅ 已签到</span>';
-        checkinBtn.textContent = '已签到';
+        checkinBtn.textContent = "已签到";
         checkinBtn.disabled = false;
 
-        showToast();
-
-        setTimeout(function() {
-          step2.classList.remove('show');
-          finishAll();
-        }, 500);
+        successToast.classList.add("show");
+        setTimeout(function() { successToast.classList.remove("show"); }, 3000);
       });
     }
 
-    // ============ 签到完成 ============
-    function finishAll() {
-      document.getElementById('step3Detail').innerHTML =
-        currentRecord.name + '<br>' + currentRecord.people + '人' +
-        (currentRecord.amount > 0 ? ' · ¥' + currentRecord.amount.toFixed(2) : '');
-
-      step3.classList.add('show');
-      stepDot2.classList.add('done');
-      stepLine1.classList.add('done');
-
-      successToast.classList.add('show');
-      setTimeout(function() {
-        successToast.classList.remove('show');
-      }, 3000);
-    }
-
-    // ============ 导航 ============
-    function goBack() {
-      step2.classList.remove('show');
-      step1.classList.remove('hidden');
-      errorMsg.classList.remove('show');
-      updateSteps(1);
-    }
-
+    // ============ 重置 ============
     function resetAll() {
       currentRecord = null;
-      currentMatchName = '';
-      nameInput.value = '';
-      step1.classList.remove('hidden');
-      step2.classList.remove('show');
-      step3.classList.remove('show');
-      resultAmount.classList.remove('free');
-      errorMsg.classList.remove('show');
+      currentMatchName = "";
+      nameInput.value = "";
+      step1.classList.remove("hidden");
+      step2.classList.remove("show");
+      resultAmount.classList.remove("free");
+      errorMsg.classList.remove("show");
       updateSteps(1);
       nameInput.focus();
     }
 
     function updateSteps(step) {
-      stepDot1.className = 'step-dot' + (step >= 1 ? ' active' : '') + (step > 1 ? ' done' : '');
-      stepDot2.className = 'step-dot' + (step >= 2 ? ' active' : '') + (step > 2 ? ' done' : '');
-      stepLine1.className = 'step-line' + (step > 1 ? ' done' : '');
-    }
-
-    function showError(msg) {
-      errorMsg.textContent = msg;
-      errorMsg.classList.add('show');
-      setTimeout(function() { errorMsg.classList.remove('show'); }, 4000);
-    }
-
-    function showToast() {
-      successToast.classList.add('show');
-      setTimeout(function() { successToast.classList.remove('show'); }, 2500);
+      stepDot1.className = "step-dot" + (step >= 1 ? " active" : "") + (step > 1 ? " done" : "");
+      stepDot2.className = "step-dot" + (step >= 2 ? " active" : "");
+      stepLine1.className = "step-line" + (step > 1 ? " done" : "");
     }
 
     // ============ 初始化 ============
+    loadCheckedIn();
     nameInput.focus();
   </script>
 </body>

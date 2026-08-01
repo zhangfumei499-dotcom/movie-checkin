@@ -1,7 +1,7 @@
 {
   "name": "movie-checkin",
   "version": "1.0.0",
-  "description": "小器皿观团签到系统",
+  "description": "Spider-Man movie checkin system",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
